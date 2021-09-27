@@ -8,7 +8,7 @@ import logging
 
 class DataBase:
     """DataBase class for managing the DB with easy API """
-    logging.basicConfig(filename="data_base_log.log", filemode='w', level=logging.INFO , format='%(name)s # %(levelname)s -> %(message)s')
+    logging.basicConfig(filename="data_base_log.log", filemode='w', level=logging.INFO, format='%(name)s@%(levelname)s -> %(message)s')
 
     def __init__(self):
         """
@@ -16,6 +16,7 @@ class DataBase:
         """
         try:
             self.conn = sqlite3.connect("server.db")  # creating the DB
+            self.cur = self.conn.cursor()
             logging.info("connected to DB")
 
             success_clients = self._create_clients_db()
@@ -23,6 +24,8 @@ class DataBase:
 
             if not (success_clients and success_message):
                 self.__del__()
+                logging.error("Closing DB Connection")
+                logging.error("Closing Program")
                 exit(0)
         except Error as e:
             logging.error(e)
@@ -36,7 +39,7 @@ class DataBase:
         :return: success status
         """
         try:
-            self.conn.execute('''CREATE TABLE clients
+            self.conn.executescript('''CREATE TABLE clients
                             (ID HEX TEXT PRIMARY KEY NOT NULL,
                             Name VARCHAR(255) NOT NULL,
                             PublicKey HEX TEXT,
@@ -54,7 +57,7 @@ class DataBase:
         :return: success status
         """
         try:
-            self.conn.execute('''CREATE TABLE messages
+            self.conn.executescript('''CREATE TABLE messages
                             (ID INT PRIMARY KEY NOT NULL,
                             ToClient HEX TEXT NOT NULL,
                             FromClient HEX TEXT NOT NULL,
@@ -82,7 +85,7 @@ class DataBase:
         """
         command = "INSERT INTO messages (ID,ToClient,FromClient,Type,Content) values ({}, {}, {}, {}, {});".format(msg_id, dest_id, src_id, msg_type, msg_content)
         try:
-            self.conn.execute(command)
+            self.conn.executescript(command)
             self.conn.commit()
         except Error as e:
             logging.error(e)
@@ -98,8 +101,67 @@ class DataBase:
         """
         command = "INSERT INTO clients (ID,Name,PublicKey,LastSeen) VALUES ({}, {}, {}, {});".format(client_id, client_name, client_public_key, client_last_seen)
         try:
-            self.conn.execute(command)
+            self.conn.executescript(command)
             self.conn.commit()
         except Error as e:
             logging.error(e)
 
+    def get_messages_for_client(self, dest_client_uuid):
+        """
+            pull all waiting message
+        :param dest_client_uuid: a unique id for the destination of the message
+        :return: messages array
+        """
+        try:
+            command = "SELECT * FROM messages WHERE ToClient = {};".format(dest_client_uuid)
+            self.cur.execute(command)
+            messages_array = self.cur.fetchall()
+            return messages_array
+        except Error as e:
+            logging.error(e)
+            return None
+
+    def get_public_key(self, ID):
+        """
+            send the public key
+        :param ID: Client ID
+        :return: Public key (HEX)
+        """
+        try:
+            command = "SELECT PublicKey FROM clients WHERE ID = {};".format(id)
+            self.cur.execute(command)
+            public_key = self.cur.fetchall()
+            return public_key
+        except Error as e:
+            logging.error(e)
+            return 0
+
+    def get_name(self, ID):
+        """
+            send the public key
+        :param ID: Client ID
+        :return: Name
+        """
+        try:
+            command = "SELECT Name FROM clients WHERE ID = {};".format(id)
+            self.cur.execute(command)
+            name = self.cur.fetchall()
+            return name
+        except Error as e:
+            logging.error(e)
+            return ""
+
+    def get_last_seen(self, ID):
+        """
+            send the public key
+        :param ID: Client ID
+        :return: LastSeen
+        """
+        try:
+            command = "SELECT LastSeen FROM clients WHERE ID = {};".format(id)
+            self.cur.execute(command)
+            last_seen = self.cur.fetchall()
+            return last_seen
+        except Error as e:
+            logging.error(e)
+            return 0

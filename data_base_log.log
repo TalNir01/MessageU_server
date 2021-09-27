@@ -1,3 +1,5 @@
-root # INFO -> connected to DB
-root # INFO -> Created clients table
-root # INFO -> Created message table
+root@INFO -> connected to DB
+root@ERROR -> table clients already exists
+root@ERROR -> table messages already exists
+root@ERROR -> Closing DB Connection
+root@ERROR -> Closing Program
