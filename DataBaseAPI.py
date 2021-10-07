@@ -4,7 +4,7 @@
 import sqlite3
 from sqlite3 import Error
 import logging
-
+import os
 
 class DataBase:
     """DataBase class for managing the DB with easy API """
@@ -15,6 +15,7 @@ class DataBase:
             Initialize the connection to the DB
         """
         try:
+            os.remove("server.db")
             self.conn = sqlite3.connect("server.db")  # creating the DB
             self.cur = self.conn.cursor()
             logging.info("connected to DB")
