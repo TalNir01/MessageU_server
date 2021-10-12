@@ -15,7 +15,7 @@ class DataBase:
             Initialize the connection to the DB
         """
         try:
-            os.remove("server.db")
+            #os.remove("server.db")
             self.conn = sqlite3.connect("server.db")  # creating the DB
             self.cur = self.conn.cursor()
             logging.info("connected to DB")
@@ -66,7 +66,6 @@ class DataBase:
                             Content Blob,
                             FOREIGN KEY(ToClient) REFERENCES clients(ID),
                             FOREIGN KEY(FromClient) REFERENCES clients(ID));''')  # create messages DB
-
             self.conn.commit()
             logging.info("Created message table")
             return True
@@ -84,9 +83,8 @@ class DataBase:
         :param msg_content: the content of the message
         :return:
         """
-        command = "INSERT INTO messages (ID,ToClient,FromClient,Type,Content) values ({}, {}, {}, {}, {});".format(msg_id, dest_id, src_id, msg_type, msg_content)
         try:
-            self.conn.executescript(command)
+            self.conn.execute("INSERT INTO messages VALUES (?, ?, ?, ?, ?);", [msg_id, dest_id, src_id, msg_type, msg_content])
             self.conn.commit()
         except Error as e:
             logging.error(e)
@@ -100,9 +98,8 @@ class DataBase:
         :param client_last_seen:
         :return:
         """
-        command = "INSERT INTO clients (ID,Name,PublicKey,LastSeen) VALUES ({}, {}, {}, {});".format(client_id, client_name, client_public_key, client_last_seen)
         try:
-            self.conn.executescript(command)
+            self.conn.execute("INSERT INTO clients VALUES (?, ?, ?, ?);", [client_id, client_name, client_public_key, client_last_seen])
             self.conn.commit()
         except Error as e:
             logging.error(e)
@@ -114,8 +111,7 @@ class DataBase:
         :return: messages array
         """
         try:
-            command = "SELECT * FROM messages WHERE ToClient = {};".format(dest_client_uuid)
-            self.cur.execute(command)
+            self.cur.execute("SELECT * FROM messages WHERE ToClient = ?;", [dest_client_uuid])
             messages_array = self.cur.fetchall()
             return messages_array
         except Error as e:
@@ -129,8 +125,7 @@ class DataBase:
         :return: Public key (HEX)
         """
         try:
-            command = "SELECT PublicKey FROM clients WHERE ID = {};".format(id)
-            self.cur.execute(command)
+            self.cur.execute("SELECT PublicKey FROM clients WHERE ID = ?;", [id])
             public_key = self.cur.fetchall()
             return public_key
         except Error as e:
@@ -144,8 +139,7 @@ class DataBase:
         :return: Name
         """
         try:
-            command = "SELECT Name FROM clients WHERE ID = {};".format(id)
-            self.cur.execute(command)
+            self.cur.execute("SELECT Name FROM clients WHERE ID = ?;", [id])
             name = self.cur.fetchall()
             return name
         except Error as e:
@@ -159,10 +153,23 @@ class DataBase:
         :return: LastSeen
         """
         try:
-            command = "SELECT LastSeen FROM clients WHERE ID = {};".format(id)
-            self.cur.execute(command)
+            self.cur.execute("SELECT LastSeen FROM clients WHERE ID = ?;", [id])
             last_seen = self.cur.fetchall()
             return last_seen
         except Error as e:
             logging.error(e)
             return 0
+
+    def get_name_id_combo(self):
+        """
+            send the name id combo
+        :return: Name
+        """
+        try:
+            command = "SELECT Name, ID FROM clients;"
+            self.cur.execute(command)
+            client_list = self.cur.fetchall()
+            return client_list
+        except Error as e:
+            logging.error(e)
+            return ""

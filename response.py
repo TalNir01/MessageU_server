@@ -1,5 +1,5 @@
 
-class Response:
+class ResponsePayLoad:
     """
         BaseClass for respones
     """
@@ -9,23 +9,30 @@ class Response:
         self.Payload_size = 0
 
 
-class Respones2000(Response):
+class Response2000(ResponsePayLoad):
     """
         Accept Registration
     """
     def __init__(self, client_id):
-        Response.__init__(self, 1)
+        ResponsePayLoad.__init__(self, 1)
         self.code = 2000
         self.Payload_size = 16
         self.Client_ID = client_id # spoused to be 16 bytes
 
+    def _register_user(self):
+        pass
 
-class Response2001(Response):
+
+class Response2001(ResponsePayLoad):
     """
         Client list
     """
     def __init__(self, client_id, client_name):
-        Response.__init__(self, 1)
+        ResponsePayLoad.__init__(self, 1)
         self.code = 2000
+        self.Clist = []
         self.Payload_size = 16
         self.Client_ID = client_id  # spoused to be 16 bytes
+
+    def getMessageListCombo(self, DB):
+
