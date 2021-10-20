@@ -44,7 +44,7 @@ class DataBase:
                             (ID HEX TEXT PRIMARY KEY NOT NULL,
                             Name VARCHAR(255) NOT NULL,
                             PublicKey HEX TEXT,
-                            LastSeen DATE NOT NULL);''')  # create client DB
+                            LastSeen DATE);''')  # create client DB
             self.conn.commit()
             logging.info("Created clients table")
             return True
@@ -111,7 +111,7 @@ class DataBase:
         :return: messages array
         """
         try:
-            self.cur.execute("SELECT * FROM messages WHERE ToClient = ?;", [dest_client_uuid])
+            self.cur.execute("SELECT FROM messages WHERE ToClient = ?;", [dest_client_uuid])
             messages_array = self.cur.fetchall()
             return messages_array
         except Error as e:
@@ -160,16 +160,16 @@ class DataBase:
             logging.error(e)
             return 0
 
-    def get_name_id_combo(self):
+    def get_client_list(self, client_id):
         """
-            send the name id combo
-        :return: Name
+            return the client list
+        :return: Name , ID
         """
         try:
-            command = "SELECT Name, ID FROM clients;"
-            self.cur.execute(command)
+            self.cur.execute("SELECT ID, Name FROM clients WHERE ID != [?];", client_id)
             client_list = self.cur.fetchall()
             return client_list
         except Error as e:
             logging.error(e)
             return ""
+
